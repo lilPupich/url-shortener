@@ -37,3 +37,8 @@ func New(storagePath string) (*Storage, error) {
 
 	return &Storage{db: db}, nil
 }
+
+func (s *Storage) SaveUrl(urlToSave string, alias string) (int64, error) {
+
+	return 0, nil
+}
