@@ -2,6 +2,9 @@ package main
 
 import (
 	"URLShortener/internal/config"
+	"URLShortener/internal/lib/logger/sl"
+	"URLShortener/internal/storage/sqlite"
+	"fmt"
 	"log/slog"
 	"os"
 )
@@ -17,12 +20,44 @@ func main() {
 
 	log := setupLogger(cfg.Env)
 
-	// TODO: init storage: sqlite
+	log.Info("starting url-shortener", slog.String("env", cfg.Env))
+	log.Debug("debug messages are enabled")
+
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failed to init storage", sl.Err(err))
+		os.Exit(1)
+	}
+
+	//DEBUG
+	_ = storage
+	fmt.Println("lfg!")
 
 	// TODO: init router: chi, "chi render"
 
-	// TODO: run server:
+	// TODO: run server
 
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
 }
 
 func setupLogger(env string) *slog.Logger {
