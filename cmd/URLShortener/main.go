@@ -4,7 +4,6 @@ import (
 	"URLShortener/internal/config"
 	"URLShortener/internal/lib/logger/sl"
 	"URLShortener/internal/storage/sqlite"
-	"fmt"
 	"log/slog"
 	"os"
 )
@@ -29,9 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	//DEBUG
 	_ = storage
-	fmt.Println("lfg!")
 
 	// TODO: init router: chi, "chi render"
 
