@@ -2,6 +2,7 @@ package main
 
 import (
 	"URLShortener/internal/config"
+	"URLShortener/internal/http-server/handlers/url/save"
 	mwLogger "URLShortener/internal/http-server/middleware/logger"
 	"URLShortener/internal/lib/logger/handlers/slogpretty"
 	"URLShortener/internal/lib/logger/sl"
@@ -46,6 +47,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	router.Post("/url", save.New(log, storage))
 	// TODO: run server
 
 }
