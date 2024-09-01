@@ -65,7 +65,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Error("server stopped")
+	log.Error("server stoppedd")
 
 	// TODO: run server
 
