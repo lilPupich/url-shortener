@@ -2,6 +2,7 @@ package main
 
 import (
 	"URLShortener/internal/config"
+	"URLShortener/internal/http-server/handlers/delete"
 	"URLShortener/internal/http-server/handlers/redirect"
 	"URLShortener/internal/http-server/handlers/url/save"
 	mwLogger "URLShortener/internal/http-server/middleware/logger"
@@ -48,6 +49,7 @@ func main() {
 
 	router.Post("/url", save.New(log, storage))
 	router.Get("/{alias}", redirect.New(log, storage))
+	router.Delete("/{alias}", delete.New(log, storage))
 
 	//debug
 	log.Info("starting server", slog.String("addr", cfg.Address))
@@ -66,8 +68,6 @@ func main() {
 	}
 
 	log.Error("server stopped")
-	log.Error("ser2144124r stopped")
-	log.Error("server stoppedd")
 
 	// TODO: run server
 
