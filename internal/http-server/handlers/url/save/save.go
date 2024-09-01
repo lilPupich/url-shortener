@@ -1,17 +1,19 @@
 package save
 
 import (
-	resp "URLShortener/internal/lib/api/response"
 	"URLShortener/internal/lib/logger/sl"
 	"URLShortener/internal/lib/random"
 	"URLShortener/internal/storage"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+
+	resp "URLShortener/internal/lib/api/response"
 )
 
 type Request struct {
@@ -25,15 +27,16 @@ type Response struct {
 }
 
 // TODO: move to config if needed
-const aliasLenght = 5
+const aliasLength = 6
 
+//go:generate go run github.com/vektra/mockery/v2 --name=URLSaver
 type URLSaver interface {
 	SaveUrl(urlToSave string, alias string) (int64, error)
 }
 
 func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers/url/save.New"
+		const op = "handlers.url.save.New"
 
 		log := log.With(
 			slog.String("op", op),
@@ -43,7 +46,15 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		var req Request
 
 		err := render.DecodeJSON(r.Body, &req)
+		if errors.Is(err, io.EOF) {
+			// Такую ошибку встретим, если получили запрос с пустым телом.
+			// Обработаем её отдельно
+			log.Error("request body is empty")
 
+			render.JSON(w, r, resp.Error("empty request"))
+
+			return
+		}
 		if err != nil {
 			log.Error("failed to decode request body", sl.Err(err))
 
@@ -66,32 +77,32 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		alias := req.Alias
 		if alias == "" {
-			alias = random.NewRandomString(aliasLenght)
+			alias = random.NewRandomString(aliasLength)
 		}
 
 		id, err := urlSaver.SaveUrl(req.URL, alias)
 		if errors.Is(err, storage.ErrURLExists) {
-			log.Info("Uurl already exists", slog.String("url", req.URL))
+			log.Info("url already exists", slog.String("url", req.URL))
 
-			render.JSON(w, r, "url already exists")
+			render.JSON(w, r, resp.Error("url already exists"))
 
 			return
 		}
 		if err != nil {
 			log.Error("failed to add url", sl.Err(err))
 
-			render.JSON(w, r, "ailed to add url")
+			render.JSON(w, r, resp.Error("failed to add url"))
 
 			return
 		}
 
 		log.Info("url added", slog.Int64("id", id))
 
-		respnseOk(w, r, alias)
+		responseOK(w, r, alias)
 	}
 }
 
-func respnseOk(w http.ResponseWriter, r *http.Request, alias string) {
+func responseOK(w http.ResponseWriter, r *http.Request, alias string) {
 	render.JSON(w, r, Response{
 		Response: resp.OK(),
 		Alias:    alias,
