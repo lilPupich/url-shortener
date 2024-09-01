@@ -66,6 +66,7 @@ func main() {
 	}
 
 	log.Error("server stopped")
+	log.Error("ser2144124r stopped")
 
 	// TODO: run server
 
