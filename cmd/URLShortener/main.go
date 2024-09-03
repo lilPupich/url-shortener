@@ -48,7 +48,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Route("/url", func(r chi.Router) {
-		r.Use(middleware.BasicAuth("/url-shortener", map[string]string{
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
 

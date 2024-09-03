@@ -31,7 +31,7 @@ const aliasLength = 6
 
 //go:generate go run github.com/vektra/mockery/v2 --name=URLSaver
 type URLSaver interface {
-	SaveUrl(urlToSave string, alias string) (int64, error)
+	SaveURL(urlToSave string, alias string) (int64, error)
 }
 
 func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
@@ -80,7 +80,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.NewRandomString(aliasLength)
 		}
 
-		id, err := urlSaver.SaveUrl(req.URL, alias)
+		id, err := urlSaver.SaveURL(req.URL, alias)
 		if errors.Is(err, storage.ErrURLExists) {
 			log.Info("url already exists", slog.String("url", req.URL))
 

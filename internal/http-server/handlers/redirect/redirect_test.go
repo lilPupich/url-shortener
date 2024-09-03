@@ -1,20 +1,21 @@
 package redirect_test
 
 import (
-	"URLShortener/internal/http-server/handlers/redirect"
-	"URLShortener/internal/http-server/handlers/redirect/mocks"
-	"URLShortener/internal/lib/api"
-	"URLShortener/internal/lib/logger/handlers/slogdiscard"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"URLShortener/internal/http-server/handlers/redirect"
+	"URLShortener/internal/http-server/handlers/redirect/mocks"
+	"URLShortener/internal/lib/api"
+	"URLShortener/internal/lib/logger/handlers/slogdiscard"
 )
 
 func TestSaveHandler(t *testing.T) {
-
-	testTable := []struct {
+	cases := []struct {
 		name      string
 		alias     string
 		url       string
@@ -22,34 +23,32 @@ func TestSaveHandler(t *testing.T) {
 		mockError error
 	}{
 		{
-			name:  "success",
-			alias: "testtt",
-			url:   "http://test.com",
+			name:  "Success",
+			alias: "test_alias",
+			url:   "https://www.google.com/",
 		},
 	}
 
-	for _, tc := range testTable {
-		t.Run(
-			tc.name,
-			func(t *testing.T) {
-				urlGetterMock := mocks.NewURLGetter(t)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			urlGetterMock := mocks.NewURLGetter(t)
 
-				if tc.respError == "" || tc.mockError != nil {
-					urlGetterMock.On("GetUrl", tc.alias).
-						Return(tc.url, tc.mockError).Once()
-				}
+			if tc.respError == "" || tc.mockError != nil {
+				urlGetterMock.On("GetUrl", tc.alias).
+					Return(tc.url, tc.mockError).Once()
+			}
 
-				r := chi.NewRouter()
-				r.Get("/{alias}", redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock))
+			r := chi.NewRouter()
+			r.Get("/{alias}", redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock))
 
-				ts := httptest.NewServer(r)
-				defer ts.Close()
+			ts := httptest.NewServer(r)
+			defer ts.Close()
 
-				redirectedToUrl, err := api.GetRedirect(ts.URL + "/" + tc.alias)
-				require.NoError(t, err)
+			redirectedToURL, err := api.GetRedirect(ts.URL + "/" + tc.alias)
+			require.NoError(t, err)
 
-				require.Equal(t, tc.url, redirectedToUrl)
-			},
-		)
+			// Check the final URL after redirection.
+			assert.Equal(t, tc.url, redirectedToURL)
+		})
 	}
 }

@@ -12,7 +12,7 @@ import (
 )
 
 type URLDeleter interface {
-	DeleteUrl(alias string) error
+	DeleteURL(alias string) error
 }
 
 type Response struct {
@@ -39,7 +39,7 @@ func New(log *slog.Logger, URLDeleter URLDeleter) http.HandlerFunc {
 			return
 		}
 
-		err := URLDeleter.DeleteUrl(alias)
+		err := URLDeleter.DeleteURL(alias)
 		if err != nil {
 			log.Error("failed to delete url", slog.String("alias", alias), sl.Err(err))
 
